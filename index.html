@@ -227,7 +227,6 @@ textarea,#follow-text{font-size:16px;line-height:1.7;padding:16px;min-height:0;r
 .toast{display:block;position:fixed;left:16px;right:16px;bottom:calc(82px + env(safe-area-inset-bottom));z-index:30;background:var(--ink);color:#fff;font-size:13px;padding:12px 14px;border-radius:12px;text-align:center;opacity:0;transform:translateY(8px);transition:opacity .2s,transform .2s;pointer-events:none}
 .toast.show{opacity:1;transform:none}
 }
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-delay:0s!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 @media print{.progress-top,.hero-art,.cta,.action-row,.choices,.mbar,.toast,.marquee,.statement{display:none!important}header{position:static}body{background:#fff}.hero{color:#000;background:#eee;transform:none}.hero-copy,.workspace{transform:none!important;opacity:1!important}.hero p,.eyebrow,h1 em{color:#000}.js .reveal,.js .line>span,.js .fade-up{opacity:1;transform:none}.workspace,.panel{break-inside:avoid}.bottom{display:block}}
 </style></head>
 <body>
@@ -302,7 +301,7 @@ const missions=[
 지금 고객의 첫 말부터 시작해 줘.`,follow:'방금 연습에서 내가 한 답변을 바탕으로, 공감 → 현재 확인 가능한 사실 → 확인 후 안내할 행동 순서의 3문장 응대 예시를 만들어 줘. 확인되지 않은 시간이나 보상은 약속하지 마.',compare:'비교 포인트 · 공감과 다음 행동이 분명한가요? 확인되지 않은 약속은 없나요?'}
 ];
 let selected=0;const drafts=missions.map(m=>m.prompt);const followDrafts=missions.map(m=>m.follow);const $=id=>document.getElementById(id);
-const mq=matchMedia('(max-width:720px)');const ws=document.querySelector('.workspace');const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const mq=matchMedia('(max-width:720px)');const ws=document.querySelector('.workspace');
 function fit(t){if(!mq.matches){t.style.height='';return}t.style.height='auto';t.style.height=t.scrollHeight+2+'px'}
 function fitAll(){fit($('prompt'));fit($('follow-text'))}
 let toastTimer;function setStatus(msg){$('status').textContent=msg;if(!mq.matches||!msg)return;const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2200)}
@@ -310,19 +309,19 @@ function flash(btn){if(!btn)return;if(!btn.classList.contains('done'))btn.datase
 function selectMission(index){drafts[selected]=$('prompt').value;followDrafts[selected]=$('follow-text').value;selected=index;const m=missions[index];$('number').textContent=String(index+1).padStart(2,'0');$('title').textContent=m.title;$('desc').textContent=m.desc;$('prompt').value=drafts[index];$('follow-text').value=followDrafts[index];$('compare').textContent=m.compare;$('status').textContent='';document.querySelectorAll('[data-mission]').forEach((b,i)=>b.setAttribute('aria-pressed',String(i===index)));document.querySelectorAll('.check input').forEach(c=>c.checked=false);ws.classList.remove('swap');void ws.offsetWidth;ws.classList.add('swap');updateProgress();fitAll()}
 async function copyText(value,btn){let ok=false;try{if(!navigator.clipboard)throw new Error('clipboard unavailable');await navigator.clipboard.writeText(value);ok=true}catch(e){const t=document.createElement('textarea');t.value=value;t.style.position='fixed';t.style.left='-9999px';document.body.appendChild(t);t.select();try{ok=document.execCommand('copy')}catch(_){}t.remove()}setStatus(ok?'복사했어요. AI 도구에 붙여넣어 주세요.':'자동 복사가 지원되지 않습니다. 원하는 문구를 길게 누르거나 드래그해 직접 복사해 주세요.');if(ok)flash(btn)}
 let prevDone=0;function updateProgress(){const n=document.querySelectorAll('.check input:checked').length;$('bar').style.width=n/3*100+'%';const c=$('completion');c.textContent=n===3?'미션 완료! 오늘의 AI 활용 경험을 실무의 작은 변화로 이어가 보세요.':'나의 진행 상황 · '+n+' / 3';c.classList.toggle('all',n===3);if(n===3&&prevDone<3)confetti();prevDone=n}
-function confetti(){if(reduce)return;const r=$('completion').getBoundingClientRect();const colors=['#006b56','#dcf68b','#103e35','#a6c75a','#cfe3d8'];for(let i=0;i<60;i++){const s=document.createElement('i');s.className='confetti';s.style.background=colors[i%colors.length];s.style.left=r.left+r.width/2+'px';s.style.top=r.top+'px';document.body.appendChild(s);const a=Math.random()*Math.PI*2,v=80+Math.random()*180,x=Math.cos(a)*v,y=Math.sin(a)*v-90;s.animate([{transform:'translate(0,0) rotate(0)',opacity:1},{transform:`translate(${x}px,${y}px) rotate(${Math.random()*360}deg)`,opacity:1,offset:.45},{transform:`translate(${x*1.2}px,${y+260}px) rotate(${Math.random()*900}deg)`,opacity:0}],{duration:1300+Math.random()*700,easing:'cubic-bezier(.2,.6,.4,1)'}).onfinish=()=>s.remove()}}
+function confetti(){const r=$('completion').getBoundingClientRect();const colors=['#006b56','#dcf68b','#103e35','#a6c75a','#cfe3d8'];for(let i=0;i<60;i++){const s=document.createElement('i');s.className='confetti';s.style.background=colors[i%colors.length];s.style.left=r.left+r.width/2+'px';s.style.top=r.top+'px';document.body.appendChild(s);const a=Math.random()*Math.PI*2,v=80+Math.random()*180,x=Math.cos(a)*v,y=Math.sin(a)*v-90;s.animate([{transform:'translate(0,0) rotate(0)',opacity:1},{transform:`translate(${x}px,${y}px) rotate(${Math.random()*360}deg)`,opacity:1,offset:.45},{transform:`translate(${x*1.2}px,${y+260}px) rotate(${Math.random()*900}deg)`,opacity:0}],{duration:1300+Math.random()*700,easing:'cubic-bezier(.2,.6,.4,1)'}).onfinish=()=>s.remove()}}
 $('prompt').value=missions[0].prompt;$('follow-text').value=followDrafts[0];$('compare').textContent=missions[0].compare;
-document.querySelectorAll('[data-mission]').forEach(b=>b.addEventListener('click',()=>{selectMission(Number(b.dataset.mission));if(mq.matches)ws.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'})}));
+document.querySelectorAll('[data-mission]').forEach(b=>b.addEventListener('click',()=>{selectMission(Number(b.dataset.mission));if(mq.matches)ws.scrollIntoView({behavior:'smooth',block:'start'})}));
 $('copy').addEventListener('click',e=>copyText($('prompt').value,e.currentTarget));$('copy-follow').addEventListener('click',e=>copyText($('follow-text').value,e.currentTarget));
 $('reset').addEventListener('click',()=>{$('prompt').value=missions[selected].prompt;setStatus('선택한 미션의 원문으로 되돌렸어요.');fitAll()});
 document.querySelectorAll('.check input').forEach(c=>c.addEventListener('change',updateProgress));
 ['prompt','follow-text'].forEach(id=>$(id).addEventListener('input',e=>fit(e.target)));
-document.querySelector('.cta').addEventListener('click',e=>{e.preventDefault();$('missions').scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'})});
+document.querySelector('.cta').addEventListener('click',e=>{e.preventDefault();$('missions').scrollIntoView({behavior:'smooth',block:'start'})});
 let inFollow=false;function syncBar(){const b=$('mbar-copy');const label=inFollow?'추가 요청 복사하기':'프롬프트 복사하기';b.dataset.label=label;if(!b.classList.contains('done'))b.textContent=label;$('mbar-tools').style.display=inFollow?'none':''}
 new IntersectionObserver(es=>es.forEach(e=>$('mbar').classList.toggle('show',e.isIntersecting)),{rootMargin:'0px 0px -40% 0px'}).observe(ws);
 new IntersectionObserver(es=>es.forEach(e=>{inFollow=e.isIntersecting;syncBar()}),{rootMargin:'-30% 0px 0px 0px'}).observe(document.querySelector('.follow'));
 $('mbar-copy').addEventListener('click',e=>copyText(inFollow?$('follow-text').value:$('prompt').value,e.currentTarget));
-$('mbar-tools').addEventListener('click',e=>{e.preventDefault();document.querySelector('.tool-step').scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'})});
+$('mbar-tools').addEventListener('click',e=>{e.preventDefault();document.querySelector('.tool-step').scrollIntoView({behavior:'smooth',block:'start'})});
 
 /* statement: split into words, *...* marks highlighted words */
 (function(){const el=$('big');const parts=el.textContent.split(/(\*[^*]+\*)/).filter(Boolean);let i=0;const out=[];parts.forEach(p=>{const hl=p.startsWith('*');p.replace(/\*/g,'').split(/\s+/).filter(Boolean).forEach(w=>{out.push(`<span class="w${hl?' hl':''}" style="--i:${i++}">${w}</span>`)})});el.innerHTML=out.join(' ');el.style.setProperty('--n',i)})();
@@ -335,11 +334,10 @@ document.querySelectorAll('.reveal').forEach(el=>{const sib=[...el.parentElement
 const fx=[...document.querySelectorAll('[data-fx]')];const header=$('top');const bar=$('progress-top');
 function frame(){ticking=false;const vh=innerHeight;for(const el of fx){const r=el.getBoundingClientRect();if(r.bottom<-300||r.top>vh+300)continue;const t=el.dataset.fx;let p=t==='exit'?-r.top/r.height:t==='enter'?(vh-r.top)/(vh*.6):(vh*.78-r.top)/(vh*.6);p=Math.min(1,Math.max(0,p));el.style.setProperty('--p',p.toFixed(3))}const max=document.documentElement.scrollHeight-vh;bar.style.transform=`scaleX(${max>0?scrollY/max:0})`;header.classList.toggle('scrolled',scrollY>8)}
 let ticking=false;
-if(!reduce){addEventListener('scroll',()=>{if(!ticking){ticking=true;requestAnimationFrame(frame)}},{passive:true});addEventListener('resize',frame);frame()}
-else{addEventListener('scroll',()=>header.classList.toggle('scrolled',scrollY>8),{passive:true})}
+addEventListener('scroll',()=>{if(!ticking){ticking=true;requestAnimationFrame(frame)}},{passive:true});addEventListener('resize',frame);frame();
 
 /* marquee: drifts on its own, speeds up while scrolling */
-(function(){const m=$('marquee');if(reduce)return;let off=0,last=scrollY,vis=false,v=0;new IntersectionObserver(es=>{vis=es[0].isIntersecting}).observe(m);(function loop(){const dy=Math.abs(scrollY-last);last=scrollY;v+=(dy*.35-v)*.12;if(vis){off+=.5+v;const w=m.scrollWidth/2;m.style.transform=`translateX(${-(off%w)}px)`}requestAnimationFrame(loop)})()})();
+(function(){const m=$('marquee');let off=0,last=scrollY,vis=false,v=0;new IntersectionObserver(es=>{vis=es[0].isIntersecting}).observe(m);(function loop(){const dy=Math.abs(scrollY-last);last=scrollY;v+=(dy*.35-v)*.12;if(vis){off+=.5+v;const w=m.scrollWidth/2;m.style.transform=`translateX(${-(off%w)}px)`}requestAnimationFrame(loop)})()})();
 
 addEventListener('resize',fitAll);fitAll();updateProgress();
 </script></body></html>
